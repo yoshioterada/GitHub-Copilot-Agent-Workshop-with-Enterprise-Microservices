@@ -33,15 +33,22 @@ RUN curl -fsSL https://get.docker.com | sh
 RUN curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose \
     && chmod +x /usr/local/bin/docker-compose
 
-# Install Kafka CLI tools (using a stable version)
-RUN KAFKA_VERSION="2.13-3.5.1" \
-    && wget "https://archive.apache.org/dist/kafka/3.5.1/kafka_${KAFKA_VERSION}.tgz" \
-    && tar -xzf "kafka_${KAFKA_VERSION}.tgz" \
-    && mv "kafka_${KAFKA_VERSION}" /opt/kafka \
-    && rm "kafka_${KAFKA_VERSION}.tgz" \
-    && ln -sf /opt/kafka/bin/kafka-topics.sh /usr/local/bin/kafka-topics \
-    && ln -sf /opt/kafka/bin/kafka-console-producer.sh /usr/local/bin/kafka-console-producer \
-    && ln -sf /opt/kafka/bin/kafka-console-consumer.sh /usr/local/bin/kafka-console-consumer
+# Install Kafka CLI tools (fetch latest version dynamically with IPv4 enforced retries)
+ARG SCALA_VERSION=2.13
+ARG KAFKA_VERSION
+RUN set -eux; \
+    KAFKA_VERSION=${KAFKA_VERSION:-$(curl -fsSL https://api.github.com/repos/apache/kafka/releases/latest | jq -r '.tag_name' | sed 's/^v//')}; \
+    ARCHIVE="kafka_${SCALA_VERSION}-${KAFKA_VERSION}.tgz"; \
+    PRIMARY_URL="https://downloads.apache.org/kafka/${KAFKA_VERSION}/${ARCHIVE}"; \
+    FALLBACK_URL="https://dlcdn.apache.org/kafka/${KAFKA_VERSION}/${ARCHIVE}"; \
+    curl -4 -fSL --retry 5 --retry-delay 10 --connect-timeout 20 -o kafka.tgz "$PRIMARY_URL" \
+    || curl -4 -fSL --retry 5 --retry-delay 10 --connect-timeout 20 -o kafka.tgz "$FALLBACK_URL"; \
+    tar -xzf kafka.tgz; \
+    mv "kafka_${SCALA_VERSION}-${KAFKA_VERSION}" /opt/kafka; \
+    rm kafka.tgz; \
+    ln -sf /opt/kafka/bin/kafka-topics.sh /usr/local/bin/kafka-topics; \
+    ln -sf /opt/kafka/bin/kafka-console-producer.sh /usr/local/bin/kafka-console-producer; \
+    ln -sf /opt/kafka/bin/kafka-console-consumer.sh /usr/local/bin/kafka-console-consumer
 
 # Install useful development tools
 RUN npm install -g @angular/cli @vue/cli create-react-app
