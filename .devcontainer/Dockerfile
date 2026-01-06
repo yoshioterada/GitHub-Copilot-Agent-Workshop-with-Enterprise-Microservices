@@ -70,7 +70,7 @@ RUN set -eux; \
 RUN npm install -g @angular/cli @vue/cli create-react-app
 
 # Install Maven (latest stable version)
-RUN MAVEN_VERSION="3.9.12" \
+RUN MAVEN_VERSION="3.9.9" \
     && wget "https://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz" \
     && tar -xzf "apache-maven-${MAVEN_VERSION}-bin.tar.gz" \
     && mv "apache-maven-${MAVEN_VERSION}" /opt/maven \
