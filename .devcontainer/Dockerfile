@@ -35,9 +35,25 @@ RUN curl -L "https://github.com/docker/compose/releases/latest/download/docker-c
 
 # Install Kafka CLI tools (fetch latest version dynamically with IPv4 enforced retries)
 ARG SCALA_VERSION=2.13
+ARG KAFKA_DEFAULT_VERSION=4.1.1
 ARG KAFKA_VERSION
 RUN set -eux; \
-    KAFKA_VERSION=${KAFKA_VERSION:-$(curl -fsSL https://api.github.com/repos/apache/kafka/releases/latest | jq -r '.tag_name' | sed 's/^v//')}; \
+    API_URL="https://api.github.com/repos/apache/kafka/releases/latest"; \
+    if [ -z "${KAFKA_VERSION:-}" ]; then \
+        API_RESPONSE=$(curl -4 -H "Accept: application/vnd.github+json" -H "User-Agent: devcontainer" -fsSL --retry 5 --retry-delay 10 --connect-timeout 20 "$API_URL" || true); \
+        if [ -n "$API_RESPONSE" ]; then \
+            PARSED_VERSION=$(printf '%s' "$API_RESPONSE" | jq -r 'select(.tag_name != null) | .tag_name' 2>/dev/null || true); \
+            if [ -n "$PARSED_VERSION" ] && [ "$PARSED_VERSION" != "null" ]; then \
+                KAFKA_VERSION=$(printf '%s' "$PARSED_VERSION" | sed 's/^v//'); \
+            fi; \
+        fi; \
+    fi; \
+    if [ -z "${KAFKA_VERSION:-}" ]; then \
+        KAFKA_VERSION=$(curl -4 -fsSL --retry 5 --retry-delay 10 --connect-timeout 20 https://downloads.apache.org/kafka/ | grep -oP '(?<=href=")[0-9]+\.[0-9]+\.[0-9]+(?=/")' | sort -V | tail -1 || true); \
+    fi; \
+    if [ -z "${KAFKA_VERSION:-}" ]; then \
+        KAFKA_VERSION="$KAFKA_DEFAULT_VERSION"; \
+    fi; \
     ARCHIVE="kafka_${SCALA_VERSION}-${KAFKA_VERSION}.tgz"; \
     PRIMARY_URL="https://downloads.apache.org/kafka/${KAFKA_VERSION}/${ARCHIVE}"; \
     FALLBACK_URL="https://dlcdn.apache.org/kafka/${KAFKA_VERSION}/${ARCHIVE}"; \
