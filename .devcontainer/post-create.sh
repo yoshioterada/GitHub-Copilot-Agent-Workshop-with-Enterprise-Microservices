@@ -39,6 +39,7 @@ alias ga="git add"
 alias gc="git commit"
 alias gp="git push"
 alias gl="git log --oneline"
+alias kafka-topics="/opt/kafka/bin/kafka-topics.sh"
 
 echo "🚀 Ski Shop Development Environment Ready!"
 EOF
