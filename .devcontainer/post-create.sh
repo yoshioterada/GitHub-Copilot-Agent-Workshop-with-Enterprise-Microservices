@@ -185,7 +185,7 @@ maybe_go_offline() {
             local marker="${WS_DIR}/.mvn_go_offline_done"
             if [ -f "$marker" ]; then
                 echo "⏭  Skipping go-offline (already done once). Remove $marker to force rerun."; return 0; fi
-            echo "📦 Running mvn dependency:go-offline (once)..."; mvn -q dependency:go-offline || echo "⚠️  go-offline encountered issues"; touch "$marker";;
+            echo "📦 Running mvn dependency:go-offline (once)... \n Now downloading many dependency libraries...(Please wait, It will take few minutes to finish.)"; mvn -q dependency:go-offline || echo "⚠️  go-offline encountered issues"; touch "$marker";;
         always|true|yes)
             echo "📦 Running mvn dependency:go-offline (always)..."; mvn -q dependency:go-offline || echo "⚠️  go-offline encountered issues";;
         *)
