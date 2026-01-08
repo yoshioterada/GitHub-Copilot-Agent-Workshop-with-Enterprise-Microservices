@@ -117,6 +117,9 @@ public class UserMFA {
     public UUID getUserId() { return userId; }
     public void setUserId(UUID userId) { this.userId = userId; }
     
+    public String getMfaType() { return mfaType; }
+    public void setMfaType(String mfaType) { this.mfaType = mfaType; }
+    
     public String getSecretKey() { return secretKey; }
     public void setSecretKey(String secretKey) { this.secretKey = secretKey; }
     
@@ -147,6 +150,7 @@ public class UserMFA {
     public static class UserMFABuilder {
         private UUID id;
         private UUID userId;
+        private String mfaType;
         private String secretKey;
         private List<String> backupCodes;
         private boolean isEnabled = false;
@@ -157,6 +161,7 @@ public class UserMFA {
         
         public UserMFABuilder id(UUID id) { this.id = id; return this; }
         public UserMFABuilder userId(UUID userId) { this.userId = userId; return this; }
+        public UserMFABuilder mfaType(String mfaType) { this.mfaType = mfaType; return this; }
         public UserMFABuilder secretKey(String secretKey) { this.secretKey = secretKey; return this; }
         public UserMFABuilder backupCodes(List<String> backupCodes) { this.backupCodes = backupCodes; return this; }
         public UserMFABuilder isEnabled(boolean isEnabled) { this.isEnabled = isEnabled; return this; }
@@ -169,6 +174,7 @@ public class UserMFA {
             UserMFA userMFA = new UserMFA();
             userMFA.setId(this.id);
             userMFA.setUserId(this.userId);
+            userMFA.setMfaType(this.mfaType);
             userMFA.setSecretKey(this.secretKey);
             userMFA.setBackupCodes(this.backupCodes);
             userMFA.setEnabled(this.isEnabled);
