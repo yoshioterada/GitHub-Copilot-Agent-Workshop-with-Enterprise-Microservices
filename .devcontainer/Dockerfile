@@ -61,10 +61,7 @@ RUN set -eux; \
     || curl -4 -fSL --retry 5 --retry-delay 10 --connect-timeout 20 -o kafka.tgz "$FALLBACK_URL"; \
     tar -xzf kafka.tgz; \
     mv "kafka_${SCALA_VERSION}-${KAFKA_VERSION}" /opt/kafka; \
-    rm kafka.tgz; \
-    ln -sf /opt/kafka/bin/kafka-topics.sh /usr/local/bin/kafka-topics; \
-    ln -sf /opt/kafka/bin/kafka-console-producer.sh /usr/local/bin/kafka-console-producer; \
-    ln -sf /opt/kafka/bin/kafka-console-consumer.sh /usr/local/bin/kafka-console-consumer
+    rm kafka.tgz; 
 
 # Install useful development tools
 RUN npm install -g @angular/cli @vue/cli create-react-app
