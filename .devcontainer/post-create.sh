@@ -171,7 +171,7 @@ maybe_create_kafka_topics() {
         for t in "${topics[@]}"; do
             "/opt/kafka/bin/kafka-topics.sh" --bootstrap-server localhost:29092 --create --if-not-exists --topic "$t" --partitions 3 --replication-factor 1 || true
         done
-        echo "📋 Available Kafka topics:"; kafka-topics --bootstrap-server localhost:29092 --list || true
+        echo "📋 Available Kafka topics:"; "/opt/kafka/bin/kafka-topics.sh" --bootstrap-server localhost:29092 --list || true
     else
         echo "ℹ️  kafka-topics CLI 未インストールのためトピック作成スキップ"
     fi
