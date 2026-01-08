@@ -82,21 +82,8 @@ ensure_infra_services() {
         return 1
     fi
 
-    local missing=()
-    # shellcheck disable=SC2206
-    local services=(${COMPOSE_SERVICES})
-    for svc in "${services[@]}"; do
-        if ! "${cmd[@]}" -f "${COMPOSE_FILE}" ps -q "$svc" >/dev/null 2>&1; then
-            missing+=("$svc")
-        fi
-    done
-
-    if [ ${#missing[@]} -gt 0 ]; then
-        echo "🔧 インフラサービスを起動します: ${services[*]}"
-        "${cmd[@]}" -f "${COMPOSE_FILE}" up -d "${services[@]}"
-    else
-        echo "✅ インフラサービスは既に起動済み: ${services[*]}"
-    fi
+    echo "🔧 インフラサービスを起動します: ${services[*]}"
+    "${cmd[@]}" -f "${COMPOSE_FILE}" up -d "${services[@]}"
 }
 
 run_infra_checks() {
