@@ -5,6 +5,7 @@ echo "🚀 Setting up Ski Shop Microservices development environment (post-creat
 
 export SHELL=/bin/bash
 export PATH=$JAVA_HOME/bin:$PATH
+export DOCKER_API_VERSION=1.43
 
 # Resolve workspace folder
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -60,14 +61,14 @@ COMPOSE_SERVICES="${COMPOSE_SERVICES:-postgres redis kafka elasticsearch}"
 echo "⚙️  Flags -> CHECK_INFRA_SERVICES=${CHECK_INFRA_SERVICES} | MAVEN_GO_OFFLINE=${MAVEN_GO_OFFLINE}"
 
 resolve_compose_cmd() {
-    if command -v docker-compose >/dev/null 2>&1; then echo "docker-compose"; return 0; fi
+    if command -v docker compose >/dev/null 2>&1; then echo "docker compose"; return 0; fi
     if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then echo "docker compose"; return 0; fi
     return 1
 }
 
 ensure_infra_services() {
     local cmd_str
-    cmd_str="$(resolve_compose_cmd)" || { echo "⚠️  docker compose/ docker-compose が見つかりません。インフラ自動起動をスキップします。"; return 1; }
+    cmd_str="$(resolve_compose_cmd)" || { echo "⚠️  docker compose/ docker compose が見つかりません。インフラ自動起動をスキップします。"; return 1; }
     local -a cmd
     read -r -a cmd <<<"${cmd_str}"
 
