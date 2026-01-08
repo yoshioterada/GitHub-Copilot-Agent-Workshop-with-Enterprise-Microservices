@@ -156,7 +156,7 @@ services:
     build:
       context: ./prometheus-config
       dockerfile: Dockerfile
-    image: local/prometheus:latest
+    image: prom/prometheus:latest
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
