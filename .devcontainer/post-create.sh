@@ -147,10 +147,10 @@ run_infra_checks() {
         echo "ℹ️  redis-cli not found, skipping Redis check"
     fi
 
-    if command -v kafka-topics &> /dev/null; then
+    if command -v "/opt/kafka/bin/kafka-topics.sh" &> /dev/null; then
         echo "Checking Kafka connection..."
         for i in {1..30}; do
-            if kafka-topics --bootstrap-server "$KAFKA_HOSTPORT" --list > /dev/null 2>&1; then
+            if "/opt/kafka/bin/kafka-topics.sh" --bootstrap-server "$KAFKA_HOSTPORT" --list > /dev/null 2>&1; then
                 echo "✅ Kafka is reachable"; break; fi
             echo "Waiting for Kafka... ($i/30)"; sleep 3; done
     else
