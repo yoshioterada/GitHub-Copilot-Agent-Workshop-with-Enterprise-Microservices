@@ -6,8 +6,10 @@ echo "🚀 Setting up Ski Shop Microservices development environment (post-creat
 export SHELL=/bin/bash
 export PATH=$JAVA_HOME/bin:$PATH
 
-# Resolve workspace folder (WORKDIR already set to /workspaces/java-skishop-microservices)
-WS_DIR="${WORKSPACE_FOLDER:-/workspaces/java-skishop-microservices}"
+# Resolve workspace folder
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+WS_DIR="${WORKSPACE_FOLDER:-/workspaces/GitHub-Copilot-Agent-Workshop-with-Enterprise-Microservices}"
+COMPOSE_FILE="${COMPOSE_FILE:-${SCRIPT_DIR}/docker-compose.yml}"
 
 LOG_DIR="${WS_DIR}/logs"
 
@@ -52,18 +54,71 @@ echo "✅ Base shell customization done. Evaluating optional steps..."
 
 CHECK_INFRA_SERVICES=${CHECK_INFRA_SERVICES:-true}
 MAVEN_GO_OFFLINE=${MAVEN_GO_OFFLINE:-once}
+START_INFRA_SERVICES=${START_INFRA_SERVICES:-true}
+COMPOSE_SERVICES="${COMPOSE_SERVICES:-postgres redis kafka elasticsearch}"
 
 echo "⚙️  Flags -> CHECK_INFRA_SERVICES=${CHECK_INFRA_SERVICES} | MAVEN_GO_OFFLINE=${MAVEN_GO_OFFLINE}"
+
+resolve_compose_cmd() {
+    if command -v docker-compose >/dev/null 2>&1; then echo "docker-compose"; return 0; fi
+    if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then echo "docker compose"; return 0; fi
+    return 1
+}
+
+ensure_infra_services() {
+    local cmd_str
+    cmd_str="$(resolve_compose_cmd)" || { echo "⚠️  docker compose/ docker-compose が見つかりません。インフラ自動起動をスキップします。"; return 1; }
+    local -a cmd
+    read -r -a cmd <<<"${cmd_str}"
+
+    if [ ! -f "${COMPOSE_FILE}" ]; then
+        echo "⚠️  COMPOSE_FILE=${COMPOSE_FILE} が存在しません。インフラ自動起動をスキップします。"
+        return 1
+    fi
+
+    if ! docker info >/dev/null 2>&1; then
+        echo "⚠️  Docker デーモンに接続できません。インフラ自動起動をスキップします。"
+        return 1
+    fi
+
+    local missing=()
+    # shellcheck disable=SC2206
+    local services=(${COMPOSE_SERVICES})
+    for svc in "${services[@]}"; do
+        if ! "${cmd[@]}" -f "${COMPOSE_FILE}" ps -q "$svc" >/dev/null 2>&1; then
+            missing+=("$svc")
+        fi
+    done
+
+    if [ ${#missing[@]} -gt 0 ]; then
+        echo "🔧 インフラサービスを起動します: ${services[*]}"
+        "${cmd[@]}" -f "${COMPOSE_FILE}" up -d "${services[@]}"
+    else
+        echo "✅ インフラサービスは既に起動済み: ${services[*]}"
+    fi
+}
 
 run_infra_checks() {
     echo "⏳ Waiting for infrastructure services to start..."
     sleep 5
     echo "🔍 Checking service health..."
 
+    local PGHOST="${PGHOST:-${POSTGRES_HOST:-postgres}}"
+    local PGPORT="${PGPORT:-5432}"
+    local PGUSER="${PGUSER:-${POSTGRES_USER:-postgres}}"
+    local PGDATABASE="${PGDATABASE:-${POSTGRES_DB:-skishop}}"
+    local REDIS_HOST="${REDIS_HOST:-redis}"
+    local REDIS_PORT="${REDIS_PORT:-6379}"
+    local REDIS_PASSWORD="${REDIS_PASSWORD:-}"
+    local KAFKA_BOOTSTRAP_SERVERS="${KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}"
+    local KAFKA_HOSTPORT="$(printf '%s' "$KAFKA_BOOTSTRAP_SERVERS" | cut -d, -f1)"
+    local ES_HOST="${ES_HOST:-elasticsearch}"
+    local ES_PORT="${ES_PORT:-9200}"
+
     if command -v pg_isready &> /dev/null; then
         echo "Checking PostgreSQL connection..."
         for i in {1..30}; do
-            if pg_isready -h postgres -p 5432 -U skishop_user -d skishop > /dev/null 2>&1; then
+            if pg_isready -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" > /dev/null 2>&1; then
                 echo "✅ PostgreSQL is ready"; break; fi
             echo "Waiting for PostgreSQL... ($i/30)"; sleep 2; done
     else
@@ -73,8 +128,10 @@ run_infra_checks() {
     if command -v redis-cli &> /dev/null; then
         echo "Checking Redis connection..."
         for i in {1..20}; do
-            if redis-cli -h redis -p 6379 -a redis_password ping > /dev/null 2>&1; then
+            if redis-cli -h "$REDIS_HOST" -p "$REDIS_PORT" ping > /dev/null 2>&1; then
                 echo "✅ Redis is ready"; break; fi
+            if [ -n "$REDIS_PASSWORD" ] && redis-cli -h "$REDIS_HOST" -p "$REDIS_PORT" -a "$REDIS_PASSWORD" ping > /dev/null 2>&1; then
+                echo "✅ Redis is ready (auth)"; break; fi
             echo "Waiting for Redis... ($i/20)"; sleep 2; done
     else
         echo "ℹ️  redis-cli not found, skipping Redis check"
@@ -83,7 +140,7 @@ run_infra_checks() {
     if command -v kafka-topics &> /dev/null; then
         echo "Checking Kafka connection..."
         for i in {1..30}; do
-            if kafka-topics --bootstrap-server kafka:9092 --list > /dev/null 2>&1; then
+            if kafka-topics --bootstrap-server "$KAFKA_HOSTPORT" --list > /dev/null 2>&1; then
                 echo "✅ Kafka is reachable"; break; fi
             echo "Waiting for Kafka... ($i/30)"; sleep 3; done
     else
@@ -92,7 +149,7 @@ run_infra_checks() {
 
     echo "Checking Elasticsearch connection..."
     for i in {1..20}; do
-        if curl -fsS http://elasticsearch:9200/_cluster/health > /dev/null 2>&1; then
+        if curl -fsS "http://${ES_HOST}:${ES_PORT}/_cluster/health" > /dev/null 2>&1; then
             echo "✅ Elasticsearch healthy"; break; fi
         echo "Waiting for Elasticsearch... ($i/20)"; sleep 3; done
 }
@@ -127,6 +184,11 @@ maybe_go_offline() {
 }
 
 if [ "${CHECK_INFRA_SERVICES}" = "true" ] || [ "${CHECK_INFRA_SERVICES}" = "1" ]; then
+    if [ "${START_INFRA_SERVICES}" = "true" ] || [ "${START_INFRA_SERVICES}" = "1" ]; then
+        ensure_infra_services || echo "⚠️  インフラ起動に失敗またはスキップしました。ヘルスチェックのみ実行します。"
+    else
+        echo "⏭  インフラ自動起動スキップ (START_INFRA_SERVICES=${START_INFRA_SERVICES})"
+    fi
     run_infra_checks
     maybe_create_kafka_topics
 else
