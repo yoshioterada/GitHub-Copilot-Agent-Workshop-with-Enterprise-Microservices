@@ -66,11 +66,23 @@ resolve_compose_cmd() {
     return 1
 }
 
+resolve_host_or_localhost() {
+    local host="$1"
+    if getent hosts "$host" >/dev/null 2>&1; then
+        printf '%s' "$host"
+    else
+        printf 'localhost'
+    fi
+}
+
 ensure_infra_services() {
     local cmd_str
     cmd_str="$(resolve_compose_cmd)" || { echo "⚠️  docker compose/ docker compose が見つかりません。インフラ自動起動をスキップします。"; return 1; }
     local -a cmd
     read -r -a cmd <<<"${cmd_str}"
+
+    local -a services
+    read -r -a services <<<"${COMPOSE_SERVICES}"
 
     if [ ! -f "${COMPOSE_FILE}" ]; then
         echo "⚠️  COMPOSE_FILE=${COMPOSE_FILE} が存在しません。インフラ自動起動をスキップします。"
@@ -102,6 +114,15 @@ run_infra_checks() {
     local KAFKA_HOSTPORT="$(printf '%s' "$KAFKA_BOOTSTRAP_SERVERS" | cut -d, -f1)"
     local ES_HOST="${ES_HOST:-elasticsearch}"
     local ES_PORT="${ES_PORT:-9200}"
+        # Codespaces や Dev Container では devcontainer が compose ネットワーク外にいる場合があるため、名前解決できなければ localhost にフォールバック
+        PGHOST="$(resolve_host_or_localhost "$PGHOST")"
+        REDIS_HOST="$(resolve_host_or_localhost "$REDIS_HOST")"
+        ES_HOST="$(resolve_host_or_localhost "$ES_HOST")"
+        # kafka host:port -> fallback host only
+        local KAFKA_HOST="${KAFKA_HOSTPORT%%:*}"
+        local KAFKA_PORT="${KAFKA_HOSTPORT##*:}"
+        KAFKA_HOST="$(resolve_host_or_localhost "$KAFKA_HOST")"
+        KAFKA_HOSTPORT="${KAFKA_HOST}:${KAFKA_PORT}"
 
     if command -v pg_isready &> /dev/null; then
         echo "Checking PostgreSQL connection..."
