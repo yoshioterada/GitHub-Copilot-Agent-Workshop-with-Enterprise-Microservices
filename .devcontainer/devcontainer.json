@@ -35,13 +35,13 @@
         "spring-boot.ls.problem.application-properties.enabled": true
       },
       "extensions": [
+        "redhat.java",
         "vscjava.vscode-java-pack",
         "vscjava.vscode-spring-initializr",
         "vscjava.vscode-spring-boot-dashboard",
         "pivotal.vscode-spring-boot",
         "vmware.vscode-spring-boot",
         "vscjava.vscode-maven",
-        "vscjava.vscode-java-test",
         "formulahendry.code-runner",
         "ms-azuretools.vscode-docker",
         "ms-vscode-remote.remote-containers",
