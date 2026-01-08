@@ -112,7 +112,8 @@ run_infra_checks() {
     local REDIS_PORT="${REDIS_PORT:-6379}"
     local REDIS_PASSWORD="${REDIS_PASSWORD:-}"
     local KAFKA_BOOTSTRAP_SERVERS="${KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}"
-    local KAFKA_HOSTPORT="$(printf '%s' "$KAFKA_BOOTSTRAP_SERVERS" | cut -d, -f1)"
+    local KAFKA_HOSTPORT
+    KAFKA_HOSTPORT="$(printf '%s' "$KAFKA_BOOTSTRAP_SERVERS" | cut -d, -f1)"
     local ES_HOST="${ES_HOST:-elasticsearch}"
     local ES_PORT="${ES_PORT:-9200}"
         # Codespaces や Dev Container では devcontainer が compose ネットワーク外にいる場合があるため、名前解決できなければ localhost にフォールバック
@@ -185,7 +186,9 @@ maybe_go_offline() {
             local marker="${WS_DIR}/.mvn_go_offline_done"
             if [ -f "$marker" ]; then
                 echo "⏭  Skipping go-offline (already done once). Remove $marker to force rerun."; return 0; fi
-            echo "📦 Running mvn dependency:go-offline (once)... \n Now downloading many dependency libraries...(Please wait, It will take few minutes to finish.)"; mvn -q dependency:go-offline || echo "⚠️  go-offline encountered issues"; touch "$marker";;
+            printf "📦 Running mvn dependency:go-offline (once)...\nNow downloading many dependency libraries...(Please wait, It will take few minutes to finish.)\n"
+            mvn -q dependency:go-offline || echo "⚠️  go-offline encountered issues"
+            touch "$marker";;
         always|true|yes)
             echo "📦 Running mvn dependency:go-offline (always)..."; mvn -q dependency:go-offline || echo "⚠️  go-offline encountered issues";;
         *)
