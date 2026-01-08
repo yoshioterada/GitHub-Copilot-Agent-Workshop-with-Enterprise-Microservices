@@ -107,6 +107,7 @@ RUN echo 'alias ll="ls -la"' >> /root/.bashrc \
     && echo 'alias dc="docker-compose"' >> /root/.bashrc \
     && echo 'alias dcu="docker-compose up -d"' >> /root/.bashrc \
     && echo 'alias dcd="docker-compose down"' >> /root/.bashrc \
+    && echo 'alias kafka-topics="/opt/kafka/bin/kafka-topics.sh"'  >> /root/.bashrc \
     && echo 'alias dcl="docker-compose logs -f"' >> /root/.bashrc
 
 # Keep container running
