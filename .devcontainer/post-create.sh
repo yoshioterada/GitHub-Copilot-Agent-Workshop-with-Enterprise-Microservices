@@ -150,7 +150,7 @@ run_infra_checks() {
     if command -v "/opt/kafka/bin/kafka-topics.sh" &> /dev/null; then
         echo "Checking Kafka connection..."
         for i in {1..30}; do
-            if "/opt/kafka/bin/kafka-topics.sh" --bootstrap-server "$KAFKA_HOSTPORT" --list > /dev/null 2>&1; then
+            if "/opt/kafka/bin/kafka-topics.sh" --bootstrap-server localhost:29092 --list > /dev/null 2>&1; then
                 echo "✅ Kafka is reachable"; break; fi
             echo "Waiting for Kafka... ($i/30)"; sleep 3; done
     else
@@ -165,13 +165,13 @@ run_infra_checks() {
 }
 
 maybe_create_kafka_topics() {
-    if command -v kafka-topics &> /dev/null; then
+    if command -v "/opt/kafka/bin/kafka-topics.sh" &> /dev/null; then
         echo "📢 Setting up Kafka topics (idempotent)..."
         local topics=(user-events order-events inventory-events payment-events notification-events)
         for t in "${topics[@]}"; do
-            kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic "$t" --partitions 3 --replication-factor 1 || true
+            "/opt/kafka/bin/kafka-topics.sh" --bootstrap-server localhost:29092 --create --if-not-exists --topic "$t" --partitions 3 --replication-factor 1 || true
         done
-        echo "📋 Available Kafka topics:"; kafka-topics --bootstrap-server kafka:9092 --list || true
+        echo "📋 Available Kafka topics:"; kafka-topics --bootstrap-server localhost:29092 --list || true
     else
         echo "ℹ️  kafka-topics CLI 未インストールのためトピック作成スキップ"
     fi
