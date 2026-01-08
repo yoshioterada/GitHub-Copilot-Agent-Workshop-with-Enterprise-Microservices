@@ -9,7 +9,7 @@
   "customizations": {
     "vscode": {
       "settings": {
-  "java.jdt.ls.java.home": "/usr/lib/jvm/msopenjdk-current",
+        "java.jdt.ls.java.home": "/usr/lib/jvm/msopenjdk-current",
         "java.configuration.runtimes": [
           {
             "name": "JavaSE-21",
@@ -119,7 +119,8 @@
     "SPRING_PROFILES_ACTIVE": "dev",
     "JAVA_TOOL_OPTIONS": "-Dspring.jpa.show-sql=true -Dlogging.level.org.springframework.web=DEBUG",
     "MAVEN_OPTS": "-Xmx1024m",
-  "JAVA_HOME": "/usr/lib/jvm/msopenjdk-current",
+    "JAVA_HOME": "/usr/lib/jvm/msopenjdk-current",
+    "DOCKER_API_VERSION": "1.43",
     // 新フラグ: インフラヘルスチェック実行 (true/false)
     "CHECK_INFRA_SERVICES": "true",
     // 新フラグ: mvn dependency:go-offline 実行 (always/false/once)
