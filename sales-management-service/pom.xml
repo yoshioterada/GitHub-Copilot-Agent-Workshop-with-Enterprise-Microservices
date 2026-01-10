@@ -26,7 +26,7 @@
         <querydsl.version>5.0.0</querydsl.version>
         <mapstruct.version>1.5.5.Final</mapstruct.version>
         <testcontainers.version>1.19.3</testcontainers.version>
-        <azure.version>1.11.1</azure.version>
+        <azure.version>1.12.2</azure.version>
         <lombok.version>1.18.30</lombok.version>
         <poi.version>5.4.0</poi.version>
         <itext.version>5.5.13.3</itext.version>
