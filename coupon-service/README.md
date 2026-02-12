@@ -22,6 +22,7 @@ Promotional Campaign and Discount Management for Ski Shop E-commerce Platform
 | POST | `/api/v1/coupons` | Create coupon | Admin |
 | GET | `/api/v1/coupons` | Get coupon list by campaign | Admin |
 | GET | `/api/v1/coupons/{code}` | Get coupon by code | Public |
+| GET | `/api/v1/coupons/by-id/{id}` | Get coupon by UUID | Public |
 | POST | `/api/v1/coupons/validate` | Validate coupon | Authenticated |
 | POST | `/api/v1/coupons/redeem` | Redeem coupon | Authenticated |
 | GET | `/api/v1/coupons/usage/{couponId}` | Get coupon usage | Admin |
@@ -409,6 +410,18 @@ curl -X POST http://localhost:8088/api/v1/coupons \
   "createdAt": "2025-07-04T10:10:00Z",
   "updatedAt": "2025-07-04T10:10:00Z"
 }
+```
+
+### Example: Get coupon by ID
+
+```bash
+curl -X GET http://localhost:8088/api/v1/coupons/by-id/550e8400-e29b-41d4-a716-446655440000
+
+# Expected Response:
+#{
+#  "success": true,
+#  "data": { /* CouponDto.CouponResponse の JSON */ }
+#}
 ```
 
 ### 4. Validate Coupon

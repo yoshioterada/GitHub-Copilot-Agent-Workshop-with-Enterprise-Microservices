@@ -157,4 +157,17 @@ public class CouponController {
             "data", coupon
         ));
     }
+
+    @GetMapping("/by-id/{id}")
+    @Operation(summary = "Get coupon by ID", description = "Retrieves coupon details by UUID")
+    public ResponseEntity<Map<String, Object>> getCouponById(
+            @Parameter(description = "Coupon ID") @PathVariable UUID id) {
+
+        CouponDto.CouponResponse coupon = couponService.getCouponById(id);
+
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "data", coupon
+        ));
+    }
 }

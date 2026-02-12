@@ -229,6 +229,12 @@ public class CouponService {
         return Page.empty();
     }
 
+        public CouponDto.CouponResponse getCouponById(UUID id) {
+                Coupon coupon = couponRepository.findByIdWithUsages(id)
+                                .orElseThrow(() -> new CouponException("Coupon not found: " + id));
+                return couponMapper.toResponse(coupon);
+        }
+
     @Transactional
     public void expireExpiredCoupons() {
         log.info("Expiring expired coupons");
